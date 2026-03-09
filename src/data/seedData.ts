@@ -2,6 +2,7 @@ import { AppData } from '../types';
 
 export const seedData: AppData = {
   selectedYear: new Date().getFullYear(),
+  selectedMonth: new Date().getMonth(),
   employees: [
     { id: 'e1', name: 'Sanne de Vries', teamOrRole: 'Operations', fixedDaysOff: [3], notes: 'Werkt liefst vroeg.' },
     { id: 'e2', name: 'Jeroen Bakker', teamOrRole: 'Operations', fixedDaysOff: [5], notes: '' },
