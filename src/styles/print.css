@@ -1,0 +1,8 @@
+@media print {
+  body { background: #fff; }
+  .no-print, .app-header p, .info-banner { display: none !important; }
+  .app-shell { padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+  .two-col { grid-template-columns: 1fr; }
+  .planning-grid th, .planning-grid td { font-size: 10px; padding: 4px; }
+}

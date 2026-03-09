@@ -1,0 +1,39 @@
+:root {
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  color: #1f2937;
+  background: #f5f7fb;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.app-shell { padding: 20px 28px 40px; }
+.app-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+h1 { margin: 0; }
+main { display: grid; gap: 16px; }
+.card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.metric { font-size: 28px; font-weight: 700; margin: 8px 0; }
+.form-grid { display: grid; gap: 8px; margin-bottom: 12px; }
+input, select, button { border-radius: 8px; border: 1px solid #cbd5e1; padding: 8px 10px; font: inherit; }
+button { background: #0f766e; color: #fff; border-color: #0f766e; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+button.danger { background: #b91c1c; border-color: #b91c1c; }
+.actions-inline { display: flex; gap: 8px; flex-wrap: wrap; }
+.list-stack { display: grid; gap: 8px; max-height: 300px; overflow: auto; }
+.list-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; display: flex; justify-content: space-between; gap: 8px; }
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid #cbd5e1; padding: 4px 6px; border-radius: 14px; }
+.planning-grid-wrapper { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
+.planning-grid { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12px; }
+.planning-grid th, .planning-grid td { border: 1px solid #e2e8f0; padding: 6px; text-align: center; min-width: 54px; }
+.planning-grid .name-cell { position: sticky; left: 0; background: #fff; min-width: 180px; text-align: left; }
+.cell-vacation { background: #fecaca; font-weight: 700; }
+.cell-fixed { background: #c7d2fe; }
+.cell-holiday { background: #ecfccb; }
+.legend { display: flex; gap: 14px; margin-bottom: 10px; color: #4b5563; font-size: 13px; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+.swatch.vacation { background: #fecaca; }
+.swatch.fixed { background: #c7d2fe; }
+.swatch.holiday { background: #ecfccb; }
+.error { color: #b91c1c; }
+.info-banner { padding: 10px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; }
+.empty { color: #64748b; }
