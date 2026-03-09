@@ -9,6 +9,9 @@ body { margin: 0; }
 .app-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
 h1 { margin: 0; }
 main { display: grid; gap: 16px; }
+.page-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.nav-link { background: #e2e8f0; color: #1f2937; border-color: #cbd5e1; }
+.nav-link.active { background: #0f766e; color: #fff; border-color: #0f766e; }
 .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05); }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }

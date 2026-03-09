@@ -10,9 +10,12 @@ import { exportBackupData, loadAppData, parseRestoreFile, saveAppData } from './
 import './styles/app.css';
 import './styles/print.css';
 
+type AppPage = 'overzicht' | 'medewerkers' | 'vakanties' | 'planning' | 'beheer';
+
 function App() {
   const [data, setData] = useState<AppData>(() => loadAppData());
   const [message, setMessage] = useState('');
+  const [activePage, setActivePage] = useState<AppPage>('overzicht');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -79,12 +82,22 @@ function App() {
         </div>
       </header>
 
+      <nav className="page-nav no-print" aria-label="Hoofdmenu">
+        <button className={activePage === 'overzicht' ? 'nav-link active' : 'nav-link'} onClick={() => setActivePage('overzicht')}>Overzicht</button>
+        <button className={activePage === 'medewerkers' ? 'nav-link active' : 'nav-link'} onClick={() => setActivePage('medewerkers')}>Medewerkers</button>
+        <button className={activePage === 'vakanties' ? 'nav-link active' : 'nav-link'} onClick={() => setActivePage('vakanties')}>Vakanties</button>
+        <button className={activePage === 'planning' ? 'nav-link active' : 'nav-link'} onClick={() => setActivePage('planning')}>Planning</button>
+        <button className={activePage === 'beheer' ? 'nav-link active' : 'nav-link'} onClick={() => setActivePage('beheer')}>Beheer</button>
+      </nav>
+
       {message && <p className="info-banner">{message}</p>}
 
       <main>
-        <Dashboard employees={data.employees} vacations={data.vacations} />
-        <div className="two-col">
-          <EmployeePanel employees={data.employees} onSave={saveEmployee} onDelete={deleteEmployee} />
+        {activePage === 'overzicht' && <Dashboard employees={data.employees} vacations={data.vacations} />}
+
+        {activePage === 'medewerkers' && <EmployeePanel employees={data.employees} onSave={saveEmployee} onDelete={deleteEmployee} />}
+
+        {activePage === 'vakanties' && (
           <VacationPanel
             employees={data.employees}
             vacations={data.vacations}
@@ -92,6 +105,33 @@ function App() {
             onDelete={(id) => setVacations((existing) => existing.filter((v) => v.id !== id))}
             onCopy={(vacation) => setVacations((existing) => [vacation, ...existing])}
           />
+        )}
+
+        {activePage === 'planning' && (
+          <PlanningBoard
+            employees={data.employees}
+            vacations={data.vacations}
+            selectedYear={data.selectedYear}
+            onYearChange={(year) => setData((prev) => ({ ...prev, selectedYear: year }))}
+            onQuickAdd={(employeeId, date) =>
+              saveVacation({ id: crypto.randomUUID(), employeeId, startDate: date, endDate: date, note: 'Snelle invoer via planning' })
+            }
+          />
+        )}
+
+        {activePage === 'beheer' && (
+          <section className="card">
+            <h2>Bestandsbeheer</h2>
+            <p className="empty">Exporteer de planning, maak een backup of herstel een eerder bestand.</p>
+            <div className="actions-inline">
+              <button onClick={() => exportPlanningToExcel(data.employees, data.vacations, data.selectedYear, new Date().getMonth())}><FileSpreadsheet size={16} /> Excel export</button>
+              <button onClick={() => window.print()}><Printer size={16} /> Print/PDF</button>
+              <button onClick={downloadBackup}><Download size={16} /> Backup</button>
+              <button onClick={() => fileInputRef.current?.click()}><Upload size={16} /> Herstel</button>
+              <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && restoreBackup(e.target.files[0])} />
+            </div>
+          </section>
+        )}
         </div>
         <PlanningBoard
           employees={data.employees}
