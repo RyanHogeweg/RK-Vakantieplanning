@@ -5,61 +5,63 @@ import { EmployeePanel } from './components/EmployeePanel';
 import { PlanningBoard } from './components/PlanningBoard';
 import { VacationPanel } from './components/VacationPanel';
 import { AppData, Employee, VacationPeriod } from './types';
+import { upsertById } from './utils/collection';
 import { exportPlanningToExcel } from './utils/excelExport';
 import { exportBackupData, loadAppData, parseRestoreFile, saveAppData } from './utils/storage';
 import './styles/app.css';
 import './styles/print.css';
 
+type BannerState = {
+  kind: 'success' | 'error';
+  text: string;
+};
+
 function App() {
   const [data, setData] = useState<AppData>(() => loadAppData());
-  const [message, setMessage] = useState('');
+  const [banner, setBanner] = useState<BannerState | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     saveAppData(data);
   }, [data]);
 
-  const setEmployees = (updater: (employees: Employee[]) => Employee[]) =>
-    setData((prev) => ({ ...prev, employees: updater(prev.employees) }));
-  const setVacations = (updater: (vacations: VacationPeriod[]) => VacationPeriod[]) =>
-    setData((prev) => ({ ...prev, vacations: updater(prev.vacations) }));
+  useEffect(() => {
+    if (!banner) return;
+    const timer = window.setTimeout(() => setBanner(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [banner]);
 
-  const saveEmployee = (employee: Employee) => {
-    setEmployees((existing) => {
-      const found = existing.some((e) => e.id === employee.id);
-      return found ? existing.map((e) => (e.id === employee.id ? employee : e)) : [...existing, employee];
-    });
-  };
+  const setEmployees = (updater: (employees: Employee[]) => Employee[]) => setData((previous) => ({ ...previous, employees: updater(previous.employees) }));
+  const setVacations = (updater: (vacations: VacationPeriod[]) => VacationPeriod[]) =>
+    setData((previous) => ({ ...previous, vacations: updater(previous.vacations) }));
+
+  const saveEmployee = (employee: Employee) => setEmployees((existingEmployees) => upsertById(existingEmployees, employee));
 
   const deleteEmployee = (id: string) => {
-    setEmployees((existing) => existing.filter((e) => e.id !== id));
-    setVacations((existing) => existing.filter((v) => v.employeeId !== id));
+    setEmployees((existingEmployees) => existingEmployees.filter((employee) => employee.id !== id));
+    setVacations((existingVacations) => existingVacations.filter((vacation) => vacation.employeeId !== id));
   };
 
-  const saveVacation = (vacation: VacationPeriod) => {
-    setVacations((existing) => {
-      const found = existing.some((v) => v.id === vacation.id);
-      return found ? existing.map((v) => (v.id === vacation.id ? vacation : v)) : [...existing, vacation];
-    });
-  };
+  const saveVacation = (vacation: VacationPeriod) => setVacations((existingVacations) => upsertById(existingVacations, vacation));
 
   const downloadBackup = () => {
     const blob = new Blob([exportBackupData(data)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `vakantieplanning-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `vakantieplanning-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
     URL.revokeObjectURL(url);
+    setBanner({ kind: 'success', text: 'Backupbestand gedownload.' });
   };
 
   const restoreBackup = async (file: File) => {
     try {
       const restored = await parseRestoreFile(file);
       setData(restored);
-      setMessage('Backup succesvol hersteld.');
-    } catch {
-      setMessage('Import mislukt. Gebruik een geldig backupbestand.');
+      setBanner({ kind: 'success', text: `Backup hersteld: ${restored.employees.length} medewerkers, ${restored.vacations.length} periodes.` });
+    } catch (error) {
+      setBanner({ kind: 'error', text: error instanceof Error ? error.message : 'Import mislukt. Gebruik een geldig backupbestand.' });
     }
   };
 
@@ -71,15 +73,33 @@ function App() {
           <p>Interne teamplanning met maand- en jaaroverzicht</p>
         </div>
         <div className="actions-inline no-print">
-          <button onClick={() => exportPlanningToExcel(data.employees, data.vacations, data.selectedYear, new Date().getMonth())}><FileSpreadsheet size={16} /> Excel export</button>
-          <button onClick={() => window.print()}><Printer size={16} /> Print/PDF</button>
-          <button onClick={downloadBackup}><Download size={16} /> Backup</button>
-          <button onClick={() => fileInputRef.current?.click()}><Upload size={16} /> Herstel</button>
-          <input ref={fileInputRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && restoreBackup(e.target.files[0])} />
+          <button onClick={() => exportPlanningToExcel(data.employees, data.vacations, data.selectedYear, new Date().getMonth())}>
+            <FileSpreadsheet size={16} /> Excel export
+          </button>
+          <button onClick={() => window.print()}>
+            <Printer size={16} /> Print/PDF
+          </button>
+          <button onClick={downloadBackup}>
+            <Download size={16} /> Backup
+          </button>
+          <button onClick={() => fileInputRef.current?.click()}>
+            <Upload size={16} /> Herstel
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json"
+            hidden
+            onChange={(event) => {
+              const selectedFile = event.target.files?.[0];
+              if (selectedFile) restoreBackup(selectedFile);
+              event.target.value = '';
+            }}
+          />
         </div>
       </header>
 
-      {message && <p className="info-banner">{message}</p>}
+      {banner && <p className={`info-banner ${banner.kind === 'error' ? 'error-banner' : ''}`}>{banner.text}</p>}
 
       <main>
         <Dashboard employees={data.employees} vacations={data.vacations} />
@@ -89,15 +109,15 @@ function App() {
             employees={data.employees}
             vacations={data.vacations}
             onSave={saveVacation}
-            onDelete={(id) => setVacations((existing) => existing.filter((v) => v.id !== id))}
-            onCopy={(vacation) => setVacations((existing) => [vacation, ...existing])}
+            onDelete={(id) => setVacations((existingVacations) => existingVacations.filter((vacation) => vacation.id !== id))}
+            onCopy={(vacation) => setVacations((existingVacations) => [vacation, ...existingVacations])}
           />
         </div>
         <PlanningBoard
           employees={data.employees}
           vacations={data.vacations}
           selectedYear={data.selectedYear}
-          onYearChange={(year) => setData((prev) => ({ ...prev, selectedYear: year }))}
+          onYearChange={(year) => setData((previous) => ({ ...previous, selectedYear: year }))}
           onQuickAdd={(employeeId, date) =>
             saveVacation({ id: crypto.randomUUID(), employeeId, startDate: date, endDate: date, note: 'Snelle invoer via planning' })
           }

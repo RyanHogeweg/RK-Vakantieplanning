@@ -1,8 +1,61 @@
 @media print {
-  body { background: #fff; }
-  .no-print, .app-header p, .info-banner { display: none !important; }
-  .app-shell { padding: 0; }
-  .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
-  .two-col { grid-template-columns: 1fr; }
-  .planning-grid th, .planning-grid td { font-size: 10px; padding: 4px; }
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+
+  body {
+    background: #fff;
+    color: #111827;
+    font-size: 11px;
+  }
+
+  .no-print,
+  .info-banner,
+  .actions-inline,
+  .subtle {
+    display: none !important;
+  }
+
+  .app-shell {
+    padding: 0;
+    max-width: none;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #d1d5db;
+    break-inside: avoid;
+    margin-bottom: 8px;
+    padding: 8px;
+  }
+
+  .two-col,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .planning-grid-wrapper {
+    overflow: visible;
+    border: 0;
+  }
+
+  .planning-grid {
+    width: 100%;
+    font-size: 9px;
+  }
+
+  .planning-grid th,
+  .planning-grid td {
+    padding: 3px;
+    min-width: 20px;
+    border-color: #d1d5db;
+  }
+
+  .planning-grid th,
+  .planning-grid .name-cell,
+  .weekend {
+    background: #fff !important;
+  }
 }

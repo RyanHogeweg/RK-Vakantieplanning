@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { format, parseISO } from 'date-fns';
+import { nl } from 'date-fns/locale';
 import { Employee, VacationPeriod } from '../types';
-import { validateDateRange } from '../utils/validation';
 import { shiftDays } from '../utils/dateUtils';
+import { validateDateRange } from '../utils/validation';
 
 interface Props {
   employees: Employee[];
@@ -17,8 +19,13 @@ export function VacationPanel({ employees, vacations, onSave, onDelete, onCopy }
   const [form, setForm] = useState<VacationPeriod>(emptyVacation);
   const [error, setError] = useState('');
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const sortedVacations = useMemo(
+    () => vacations.slice().sort((first, second) => first.startDate.localeCompare(second.startDate)),
+    [vacations],
+  );
+
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
     const validationError = validateDateRange(form.startDate, form.endDate);
     if (validationError) {
       setError(validationError);
@@ -28,6 +35,7 @@ export function VacationPanel({ employees, vacations, onSave, onDelete, onCopy }
       setError('Selecteer een medewerker.');
       return;
     }
+
     onSave({ ...form, id: form.id || crypto.randomUUID() });
     setForm(emptyVacation);
     setError('');
@@ -37,37 +45,77 @@ export function VacationPanel({ employees, vacations, onSave, onDelete, onCopy }
     <section className="card">
       <h2>Vakantieperiodes</h2>
       <form className="form-grid" onSubmit={submit}>
-        <select value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })} required>
-          <option value="">Kies medewerker</option>
-          {employees.map((emp) => (
-            <option value={emp.id} key={emp.id}>
-              {emp.name}
-            </option>
-          ))}
-        </select>
-        <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required />
-        <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required />
-        <input placeholder="Notitie" value={form.note || ''} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-        <button type="submit">{form.id ? 'Opslaan' : 'Toevoegen'}</button>
+        <div className="form-row two-up">
+          <label>
+            Medewerker
+            <select value={form.employeeId} onChange={(event) => setForm({ ...form, employeeId: event.target.value })} required>
+              <option value="">Kies medewerker</option>
+              {employees
+                .slice()
+                .sort((first, second) => first.name.localeCompare(second.name, 'nl'))
+                .map((employee) => (
+                  <option value={employee.id} key={employee.id}>
+                    {employee.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label>
+            Notitie
+            <input placeholder="Optioneel" value={form.note || ''} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+          </label>
+        </div>
+
+        <div className="form-row two-up">
+          <label>
+            Startdatum
+            <input type="date" value={form.startDate} onChange={(event) => setForm({ ...form, startDate: event.target.value })} required />
+          </label>
+          <label>
+            Einddatum
+            <input type="date" value={form.endDate} onChange={(event) => setForm({ ...form, endDate: event.target.value })} required />
+          </label>
+        </div>
+
+        <div className="actions-inline">
+          <button type="submit">{form.id ? 'Wijzigingen opslaan' : 'Periode toevoegen'}</button>
+          {form.id && (
+            <button type="button" onClick={() => setForm(emptyVacation)}>
+              Annuleren
+            </button>
+          )}
+        </div>
       </form>
       {error && <p className="error">{error}</p>}
+
       <div className="list-stack">
-        {vacations.map((vac) => {
-          const employee = employees.find((e) => e.id === vac.employeeId);
+        {sortedVacations.map((vacation) => {
+          const employee = employees.find((currentEmployee) => currentEmployee.id === vacation.employeeId);
           return (
-            <div className="list-item" key={vac.id}>
+            <div className="list-item" key={vacation.id}>
               <div>
                 <strong>{employee?.name ?? 'Onbekend'}</strong>
                 <p>
-                  {vac.startDate} t/m {vac.endDate} {vac.note ? `• ${vac.note}` : ''}
+                  {format(parseISO(vacation.startDate), 'dd MMM yyyy', { locale: nl })} t/m{' '}
+                  {format(parseISO(vacation.endDate), 'dd MMM yyyy', { locale: nl })}
+                  {vacation.note ? ` • ${vacation.note}` : ''}
                 </p>
               </div>
               <div className="actions-inline">
-                <button onClick={() => setForm(vac)}>Bewerk</button>
-                <button onClick={() => onCopy({ ...vac, id: crypto.randomUUID(), startDate: shiftDays(vac.startDate, 7), endDate: shiftDays(vac.endDate, 7) })}>
+                <button onClick={() => setForm(vacation)}>Bewerk</button>
+                <button
+                  onClick={() =>
+                    onCopy({
+                      ...vacation,
+                      id: crypto.randomUUID(),
+                      startDate: shiftDays(vacation.startDate, 7),
+                      endDate: shiftDays(vacation.endDate, 7),
+                    })
+                  }
+                >
                   Kopieer +1 week
                 </button>
-                <button className="danger" onClick={() => onDelete(vac.id)}>
+                <button className="danger" onClick={() => onDelete(vacation.id)}>
                   Verwijder
                 </button>
               </div>
