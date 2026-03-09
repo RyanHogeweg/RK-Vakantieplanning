@@ -37,3 +37,16 @@ button.danger { background: #b91c1c; border-color: #b91c1c; }
 .error { color: #b91c1c; }
 .info-banner { padding: 10px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; }
 .empty { color: #64748b; }
+
+.planning-grid.year-view th,
+.planning-grid.year-view td {
+  min-width: 34px;
+  padding: 4px;
+}
+.planning-grid.year-view th:not(:first-child) {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.planning-grid .month-start {
+  border-left: 2px solid #94a3b8;
+}

@@ -26,6 +26,8 @@ export function PlanningBoard({
 }: Props) {
   const [view, setView] = useState<PlanningView>('month');
 
+  const days = useMemo(() => (view === 'month' ? daysInMonth(selectedYear, month) : daysInYear(selectedYear)), [view, selectedYear, month]);
+  const displayDays = days;
   const days = useMemo(
     () => (view === 'month' ? daysInMonth(selectedYear, selectedMonth) : daysInYear(selectedYear)),
     [view, selectedYear, selectedMonth],
@@ -64,12 +66,14 @@ export function PlanningBoard({
       </div>
 
       <div className="planning-grid-wrapper">
-        <table className="planning-grid">
+        <table className={`planning-grid ${view === 'year' ? 'year-view' : ''}`}>
           <thead>
             <tr>
               <th>Medewerker</th>
               {displayDays.map((day) => (
-                <th key={day.toISOString()}>{view === 'month' ? format(day, 'd EEE', { locale: nl }) : format(day, 'd MMM', { locale: nl })}</th>
+                <th key={day.toISOString()} className={view === 'year' && day.getDate() === 1 ? 'month-start' : ''}>
+                  {view === 'month' ? format(day, 'd EEE', { locale: nl }) : format(day, 'd MMM', { locale: nl })}
+                </th>
               ))}
             </tr>
           </thead>
@@ -84,7 +88,7 @@ export function PlanningBoard({
                   return (
                     <td
                       key={day.toISOString()}
-                      className={`${isVac ? 'cell-vacation' : ''} ${!isVac && isFixed ? 'cell-fixed' : ''} ${!isVac && !isFixed && holiday ? 'cell-holiday' : ''}`}
+                      className={`${isVac ? 'cell-vacation' : ''} ${!isVac && isFixed ? 'cell-fixed' : ''} ${!isVac && !isFixed && holiday ? 'cell-holiday' : ''} ${view === 'year' && day.getDate() === 1 ? 'month-start' : ''}`}
                       title={holiday ? holiday.name : ''}
                       onDoubleClick={() => onQuickAdd(employee.id, format(day, 'yyyy-MM-dd'))}
                     >
