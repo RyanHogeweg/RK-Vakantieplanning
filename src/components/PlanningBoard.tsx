@@ -20,25 +20,14 @@ const viewOptions: Array<{ value: PlanningView; label: string }> = [
   { value: 'year', label: 'Jaar (weekoverzicht)' },
 ];
 
-export function PlanningBoard({ employees, vacations, selectedYear, onYearChange, onQuickAdd }: Props) {
-export function PlanningBoard({
-  employees,
-  vacations,
-  selectedYear,
-  selectedMonth,
-  onYearChange,
-  onMonthChange,
-  onQuickAdd,
-}: Props) {
+export function PlanningBoard({ employees, vacations, selectedYear, selectedMonth, onYearChange, onMonthChange, onQuickAdd }: Props) {
   const [view, setView] = useState<PlanningView>('month');
 
-  const days = useMemo(() => (view === 'month' ? daysInMonth(selectedYear, month) : daysInYear(selectedYear)), [view, selectedYear, month]);
-  const displayDays = useMemo(() => (view === 'year' ? days.filter((_, index) => index % 7 === 0) : days), [days, view]);
   const days = useMemo(
     () => (view === 'month' ? daysInMonth(selectedYear, selectedMonth) : daysInYear(selectedYear)),
     [view, selectedYear, selectedMonth],
   );
-  const displayDays = view === 'year' ? days.filter((_, i) => i % 7 === 0) : days;
+  const displayDays = view === 'year' ? days.filter((_, index) => index % 7 === 0) : days;
   const years = [selectedYear - 1, selectedYear, selectedYear + 1, selectedYear + 2];
 
   const sortedEmployees = useMemo(
@@ -69,14 +58,11 @@ export function PlanningBoard({
             ))}
           </select>
           {view === 'month' && (
-            <select aria-label="Selecteer maand" value={month} onChange={(event) => setMonth(Number(event.target.value))}>
+            <select aria-label="Selecteer maand" value={selectedMonth} onChange={(event) => onMonthChange(Number(event.target.value))}>
               {Array.from({ length: 12 }).map((_, index) => (
                 <option key={index} value={index}>
                   {format(new Date(selectedYear, index, 1), 'MMMM', { locale: nl })}
                 </option>
-            <select value={selectedMonth} onChange={(e) => onMonthChange(Number(e.target.value))}>
-              {Array.from({ length: 12 }).map((_, idx) => (
-                <option key={idx} value={idx}>{format(new Date(selectedYear, idx, 1), 'MMMM', { locale: nl })}</option>
               ))}
             </select>
           )}

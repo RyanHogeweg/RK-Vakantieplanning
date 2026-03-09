@@ -46,6 +46,7 @@ const normalizeData = (input: AppData): AppData => {
     employees,
     vacations,
     selectedYear: Number.isInteger(input.selectedYear) ? input.selectedYear : new Date().getFullYear(),
+    selectedMonth: Number.isInteger(input.selectedMonth) ? input.selectedMonth : new Date().getMonth(),
   };
 };
 
@@ -57,8 +58,6 @@ const isValidData = (input: unknown): input is AppData => {
     data.employees.every(isValidEmployee) &&
     Array.isArray(data.vacations) &&
     data.vacations.every(isValidVacation) &&
-    typeof data.selectedYear === 'number'
-    Array.isArray(data.vacations) &&
     typeof data.selectedYear === 'number' &&
     typeof data.selectedMonth === 'number'
   );
