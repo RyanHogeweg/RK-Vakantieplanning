@@ -71,7 +71,7 @@ function App() {
           <p>Interne teamplanning met maand- en jaaroverzicht</p>
         </div>
         <div className="actions-inline no-print">
-          <button onClick={() => exportPlanningToExcel(data.employees, data.vacations, data.selectedYear, new Date().getMonth())}><FileSpreadsheet size={16} /> Excel export</button>
+          <button onClick={() => exportPlanningToExcel(data.employees, data.vacations, data.selectedYear, data.selectedMonth)}><FileSpreadsheet size={16} /> Excel export</button>
           <button onClick={() => window.print()}><Printer size={16} /> Print/PDF</button>
           <button onClick={downloadBackup}><Download size={16} /> Backup</button>
           <button onClick={() => fileInputRef.current?.click()}><Upload size={16} /> Herstel</button>
@@ -97,7 +97,9 @@ function App() {
           employees={data.employees}
           vacations={data.vacations}
           selectedYear={data.selectedYear}
+          selectedMonth={data.selectedMonth}
           onYearChange={(year) => setData((prev) => ({ ...prev, selectedYear: year }))}
+          onMonthChange={(month) => setData((prev) => ({ ...prev, selectedMonth: month }))}
           onQuickAdd={(employeeId, date) =>
             saveVacation({ id: crypto.randomUUID(), employeeId, startDate: date, endDate: date, note: 'Snelle invoer via planning' })
           }

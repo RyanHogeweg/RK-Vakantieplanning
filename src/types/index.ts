@@ -18,6 +18,7 @@ export interface AppData {
   employees: Employee[];
   vacations: VacationPeriod[];
   selectedYear: number;
+  selectedMonth: number;
 }
 
 export type PlanningView = 'month' | 'year';

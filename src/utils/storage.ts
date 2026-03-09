@@ -6,7 +6,12 @@ const STORAGE_KEY = 'rk-vakantieplanning-data-v1';
 const isValidData = (input: unknown): input is AppData => {
   if (!input || typeof input !== 'object') return false;
   const data = input as AppData;
-  return Array.isArray(data.employees) && Array.isArray(data.vacations) && typeof data.selectedYear === 'number';
+  return (
+    Array.isArray(data.employees) &&
+    Array.isArray(data.vacations) &&
+    typeof data.selectedYear === 'number' &&
+    typeof data.selectedMonth === 'number'
+  );
 };
 
 export const loadAppData = (): AppData => {
@@ -14,6 +19,10 @@ export const loadAppData = (): AppData => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return seedData;
     const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return seedData;
+    if ('selectedYear' in parsed && !('selectedMonth' in parsed)) {
+      return { ...(parsed as AppData), selectedMonth: new Date().getMonth() };
+    }
     if (!isValidData(parsed)) return seedData;
     return parsed;
   } catch {
