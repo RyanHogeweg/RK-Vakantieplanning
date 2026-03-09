@@ -16,9 +16,18 @@ type BannerState = {
   text: string;
 };
 
+type AppTab = 'employees' | 'vacation-entry' | 'vacation-overview';
+
+const tabs: Array<{ key: AppTab; label: string }> = [
+  { key: 'employees', label: 'Medewerkers / teams' },
+  { key: 'vacation-entry', label: 'Vakantie ingeven' },
+  { key: 'vacation-overview', label: 'Overzicht vakantie' },
+];
+
 function App() {
   const [data, setData] = useState<AppData>(() => loadAppData());
   const [banner, setBanner] = useState<BannerState | null>(null);
+  const [activeTab, setActiveTab] = useState<AppTab>('vacation-overview');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -101,10 +110,24 @@ function App() {
 
       {banner && <p className={`info-banner ${banner.kind === 'error' ? 'error-banner' : ''}`}>{banner.text}</p>}
 
+      <nav className="top-tabs" aria-label="Navigatie tussen onderdelen">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            className={`tab-button ${activeTab === tab.key ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.key)}
+            aria-current={activeTab === tab.key ? 'page' : undefined}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
       <main>
-        <Dashboard employees={data.employees} vacations={data.vacations} />
-        <div className="two-col">
-          <EmployeePanel employees={data.employees} onSave={saveEmployee} onDelete={deleteEmployee} />
+        {activeTab === 'employees' && <EmployeePanel employees={data.employees} onSave={saveEmployee} onDelete={deleteEmployee} />}
+
+        {activeTab === 'vacation-entry' && (
           <VacationPanel
             employees={data.employees}
             vacations={data.vacations}
@@ -112,18 +135,24 @@ function App() {
             onDelete={(id) => setVacations((existingVacations) => existingVacations.filter((vacation) => vacation.id !== id))}
             onCopy={(vacation) => setVacations((existingVacations) => [vacation, ...existingVacations])}
           />
-        </div>
-        <PlanningBoard
-          employees={data.employees}
-          vacations={data.vacations}
-          selectedYear={data.selectedYear}
-          selectedMonth={data.selectedMonth}
-          onYearChange={(year) => setData((prev) => ({ ...prev, selectedYear: year }))}
-          onMonthChange={(month) => setData((prev) => ({ ...prev, selectedMonth: month }))}
-          onQuickAdd={(employeeId, date) =>
-            saveVacation({ id: crypto.randomUUID(), employeeId, startDate: date, endDate: date, note: 'Snelle invoer via planning' })
-          }
-        />
+        )}
+
+        {activeTab === 'vacation-overview' && (
+          <>
+            <Dashboard employees={data.employees} vacations={data.vacations} />
+            <PlanningBoard
+              employees={data.employees}
+              vacations={data.vacations}
+              selectedYear={data.selectedYear}
+              selectedMonth={data.selectedMonth}
+              onYearChange={(year) => setData((prev) => ({ ...prev, selectedYear: year }))}
+              onMonthChange={(month) => setData((prev) => ({ ...prev, selectedMonth: month }))}
+              onQuickAdd={(employeeId, date) =>
+                saveVacation({ id: crypto.randomUUID(), employeeId, startDate: date, endDate: date, note: 'Snelle invoer via planning' })
+              }
+            />
+          </>
+        )}
       </main>
     </div>
   );
