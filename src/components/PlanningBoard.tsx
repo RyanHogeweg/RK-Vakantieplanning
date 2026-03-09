@@ -9,7 +9,9 @@ interface Props {
   employees: Employee[];
   vacations: VacationPeriod[];
   selectedYear: number;
+  selectedMonth: number;
   onYearChange: (year: number) => void;
+  onMonthChange: (month: number) => void;
   onQuickAdd: (employeeId: string, date: string) => void;
 }
 
@@ -19,11 +21,24 @@ const viewOptions: Array<{ value: PlanningView; label: string }> = [
 ];
 
 export function PlanningBoard({ employees, vacations, selectedYear, onYearChange, onQuickAdd }: Props) {
+export function PlanningBoard({
+  employees,
+  vacations,
+  selectedYear,
+  selectedMonth,
+  onYearChange,
+  onMonthChange,
+  onQuickAdd,
+}: Props) {
   const [view, setView] = useState<PlanningView>('month');
-  const [month, setMonth] = useState(new Date().getMonth());
 
   const days = useMemo(() => (view === 'month' ? daysInMonth(selectedYear, month) : daysInYear(selectedYear)), [view, selectedYear, month]);
   const displayDays = useMemo(() => (view === 'year' ? days.filter((_, index) => index % 7 === 0) : days), [days, view]);
+  const days = useMemo(
+    () => (view === 'month' ? daysInMonth(selectedYear, selectedMonth) : daysInYear(selectedYear)),
+    [view, selectedYear, selectedMonth],
+  );
+  const displayDays = view === 'year' ? days.filter((_, i) => i % 7 === 0) : days;
   const years = [selectedYear - 1, selectedYear, selectedYear + 1, selectedYear + 2];
 
   const sortedEmployees = useMemo(
@@ -59,6 +74,9 @@ export function PlanningBoard({ employees, vacations, selectedYear, onYearChange
                 <option key={index} value={index}>
                   {format(new Date(selectedYear, index, 1), 'MMMM', { locale: nl })}
                 </option>
+            <select value={selectedMonth} onChange={(e) => onMonthChange(Number(e.target.value))}>
+              {Array.from({ length: 12 }).map((_, idx) => (
+                <option key={idx} value={idx}>{format(new Date(selectedYear, idx, 1), 'MMMM', { locale: nl })}</option>
               ))}
             </select>
           )}

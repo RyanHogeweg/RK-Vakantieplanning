@@ -58,6 +58,9 @@ const isValidData = (input: unknown): input is AppData => {
     Array.isArray(data.vacations) &&
     data.vacations.every(isValidVacation) &&
     typeof data.selectedYear === 'number'
+    Array.isArray(data.vacations) &&
+    typeof data.selectedYear === 'number' &&
+    typeof data.selectedMonth === 'number'
   );
 };
 
@@ -66,6 +69,10 @@ export const loadAppData = (): AppData => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return seedData;
     const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return seedData;
+    if ('selectedYear' in parsed && !('selectedMonth' in parsed)) {
+      return { ...(parsed as AppData), selectedMonth: new Date().getMonth() };
+    }
     if (!isValidData(parsed)) return seedData;
     return normalizeData(parsed);
   } catch {
